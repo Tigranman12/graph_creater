@@ -188,64 +188,6 @@ export const NodeBlock: React.FC<NodeBlockProps> = ({
             </text>
           )}
 
-          {node.moduleKind === 'hierarchical' && (
-            <g
-              transform={`translate(${width - 22}, 10)`}
-              onDoubleClick={e => {
-                e.stopPropagation()
-                enterHierarchyByNode(node.id)
-              }}
-              style={{ cursor: 'pointer' }}
-            >
-              <rect
-                x={-8}
-                y={-8}
-                width={16}
-                height={16}
-                rx={3}
-                fill="rgba(15, 23, 42, 0.28)"
-                stroke="rgba(255,255,255,0.25)"
-              />
-              <text
-                x={0}
-                y={1}
-                fill="#ffffff"
-                fontSize={9}
-                textAnchor="middle"
-                dominantBaseline="middle"
-                style={{ userSelect: 'none', pointerEvents: 'none' }}
-              >
-                H
-              </text>
-            </g>
-          )}
-
-          {isStructural && (
-            <g transform={`translate(${width - 48}, 10)`}>
-              <rect
-                x={-18}
-                y={-8}
-                width={32}
-                height={16}
-                rx={8}
-                fill="rgba(18, 52, 35, 0.55)"
-                stroke="rgba(125, 211, 167, 0.45)"
-              />
-              <text
-                x={-2}
-                y={1}
-                fill="#c8f3de"
-                fontSize={8}
-                fontWeight="700"
-                textAnchor="middle"
-                dominantBaseline="middle"
-                style={{ userSelect: 'none', pointerEvents: 'none' }}
-              >
-                STRUCT
-              </text>
-            </g>
-          )}
-
           {/* Node name */}
           <text
             x={width / 2}
@@ -346,22 +288,78 @@ export const NodeBlock: React.FC<NodeBlockProps> = ({
               />
             </g>
           ))}
+{/* Collapsed indicator */}
+{collapsed && ports.filter(p => p.side === 'left' || p.side === 'right').length > 0 && (
+  <text
+    x={width / 2}
+    y={headerHeight + 12}
+    fill="rgba(255,255,255,0.4)"
+    fontSize={9}
+    textAnchor="middle"
+    style={{ userSelect: 'none', pointerEvents: 'none' }}
+  >
+    ···
+  </text>
+)}
 
-          {/* Collapsed indicator */}
-          {collapsed && ports.filter(p => p.side === 'left' || p.side === 'right').length > 0 && (
-            <text
-              x={width / 2}
-              y={headerHeight + 12}
-              fill="rgba(255,255,255,0.4)"
-              fontSize={9}
-              textAnchor="middle"
-              style={{ userSelect: 'none', pointerEvents: 'none' }}
-            >
-              ···
-            </text>
-          )}
-        </>
-      )}
+{/* Badges on top of everything for events */}
+{!lowDetail && node.moduleKind === 'hierarchical' && (
+  <g
+    transform={`translate(${width - 22}, 10)`}
+    onDoubleClick={e => {
+      e.stopPropagation()
+      enterHierarchyByNode(node.id)
+    }}
+    style={{ cursor: 'pointer' }}
+  >
+    <rect
+      x={-8}
+      y={-8}
+      width={16}
+      height={16}
+      rx={3}
+      fill="rgba(15, 23, 42, 0.45)"
+      stroke="rgba(255,255,255,0.3)"
+    />
+    <text
+      x={0}
+      y={1}
+      fill="#ffffff"
+      fontSize={9}
+      textAnchor="middle"
+      dominantBaseline="middle"
+      style={{ userSelect: 'none', pointerEvents: 'none' }}
+    >
+      H
+    </text>
+  </g>
+)}
+
+{!lowDetail && isStructural && (
+  <g transform={`translate(${width - 48}, 10)`}>
+    <rect
+      x={-18}
+      y={-8}
+      width={32}
+      height={16}
+      rx={8}
+      fill="rgba(18, 52, 35, 0.65)"
+      stroke="rgba(125, 211, 167, 0.55)"
+    />
+    <text
+      x={-2}
+      y={1}
+      fill="#c8f3de"
+      fontSize={8}
+      fontWeight="700"
+      textAnchor="middle"
+      dominantBaseline="middle"
+      style={{ userSelect: 'none', pointerEvents: 'none' }}
+    >
+      STRUCT
+    </text>
+  </g>
+)}
     </g>
   )
 }
