@@ -288,21 +288,23 @@ export const NodeBlock: React.FC<NodeBlockProps> = ({
               />
             </g>
           ))}
-{/* Collapsed indicator */}
-{collapsed && ports.filter(p => p.side === 'left' || p.side === 'right').length > 0 && (
-  <text
-    x={width / 2}
-    y={headerHeight + 12}
-    fill="rgba(255,255,255,0.4)"
-    fontSize={9}
-    textAnchor="middle"
-    style={{ userSelect: 'none', pointerEvents: 'none' }}
-  >
-    ···
-  </text>
-)}
+          {/* Collapsed indicator */}
+          {collapsed && ports.filter(p => p.side === 'left' || p.side === 'right').length > 0 && (
+            <text
+              x={width / 2}
+              y={headerHeight + 12}
+              fill="rgba(255,255,255,0.4)"
+              fontSize={9}
+              textAnchor="middle"
+              style={{ userSelect: 'none', pointerEvents: 'none' }}
+            >
+              ···
+            </text>
+          )}
+        </>
+      )}
 
-{/* Badges on top of everything for events */}
+      {/* Badges on top of everything for events */}
 {!lowDetail && node.moduleKind === 'hierarchical' && (
   <g
     transform={`translate(${width - 22}, 10)`}
