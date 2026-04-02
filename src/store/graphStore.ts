@@ -943,11 +943,24 @@ export const useGraphStore = create<GraphStore>((set, get) => ({
       if (!targetNode) return state
 
       let nextDb = state.db
+      
+      // Determine final moduleKind and moduleType
+      let moduleKind = partial.moduleKind || targetNode.moduleKind
+      let moduleType = partial.moduleType || targetNode.moduleType
+      
+      // If one is changed, sync the other
+      if (partial.moduleType === 'structural') moduleKind = 'hierarchical'
+      if (partial.moduleType === 'behavioral') moduleKind = 'behavioral'
+      if (partial.moduleKind === 'hierarchical') moduleType = 'structural'
+      if (partial.moduleKind === 'behavioral') moduleType = 'behavioral'
+
       let nextNode = {
         ...targetNode,
         ...partial,
-        moduleType: partial.moduleType || (partial.moduleKind === 'hierarchical' ? 'structural' : partial.moduleKind === 'behavioral' ? 'behavioral' : targetNode.moduleType)
+        moduleKind,
+        moduleType
       }
+
       if (nextNode.moduleKind === 'hierarchical' || nextNode.moduleType === 'structural') {
         const ensured = ensureHierarchyNetlist(nextDb, nextNode)
         nextDb = ensured.db
