@@ -1,0 +1,480 @@
+.dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(2px);
+}
+
+.dialog {
+  background: #22262e;
+  border: 1px solid #2d3340;
+  border-radius: 10px;
+  width: 680px;
+  max-width: 92vw;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.dialog-titlebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid #2d3340;
+}
+
+.dialog-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #c8d4e0;
+}
+
+.dialog-close-btn {
+  width: 26px;
+  height: 26px;
+  background: none;
+  border: 1px solid #2d3340;
+  border-radius: 5px;
+  color: #6b7a8d;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  padding: 0;
+  transition: color 0.1s, border-color 0.1s;
+}
+
+.dialog-close-btn:hover {
+  color: #e57373;
+  border-color: #e57373;
+}
+
+.dialog-tabs {
+  display: flex;
+  border-bottom: 1px solid #2d3340;
+  padding: 0 18px;
+  gap: 0;
+}
+
+.dialog-tab {
+  padding: 10px 16px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #6b7a8d;
+  cursor: pointer;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  font-family: system-ui, sans-serif;
+  transition: color 0.12s, border-color 0.12s;
+  margin-bottom: -1px;
+}
+
+.dialog-tab:hover {
+  color: #c8d4e0;
+}
+
+.dialog-tab.active {
+  color: #90CAF9;
+  border-bottom-color: #4A90D9;
+}
+
+.dialog-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 18px;
+  scrollbar-width: thin;
+  scrollbar-color: #2d3340 transparent;
+}
+
+.dialog-body::-webkit-scrollbar {
+  width: 4px;
+}
+
+.dialog-body::-webkit-scrollbar-thumb {
+  background-color: #2d3340;
+  border-radius: 2px;
+}
+
+.dialog-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 18px;
+  border-top: 1px solid #2d3340;
+}
+
+/* Form elements */
+.dialog-field {
+  margin-bottom: 14px;
+}
+
+.dialog-field label {
+  display: block;
+  font-size: 11px;
+  color: #6b7a8d;
+  font-weight: 500;
+  margin-bottom: 5px;
+}
+
+.dialog-input {
+  width: 100%;
+  background: #1a1d23;
+  border: 1px solid #2d3340;
+  border-radius: 5px;
+  color: #e2e8f0;
+  font-size: 13px;
+  padding: 7px 10px;
+  box-sizing: border-box;
+  font-family: system-ui, sans-serif;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.dialog-input:focus {
+  border-color: #4A90D9;
+}
+
+.dialog-textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.dialog-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%236b7a8d' d='M6 8L0 0h12z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  cursor: pointer;
+}
+
+.dialog-row {
+  display: flex;
+  gap: 10px;
+}
+
+.dialog-row .dialog-field {
+  flex: 1;
+}
+
+/* Ports table */
+.ports-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.ports-table th {
+  text-align: left;
+  padding: 6px 8px;
+  color: #6b7a8d;
+  font-weight: 500;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid #2d3340;
+}
+
+.ports-table td {
+  padding: 4px 4px;
+  vertical-align: middle;
+  border-bottom: 1px solid #1e2430;
+}
+
+.ports-table tr:hover td {
+  background: #1e2330;
+}
+
+.ports-table .dialog-input {
+  padding: 5px 8px;
+  font-size: 12px;
+}
+
+.ports-table .dialog-select {
+  padding: 5px 28px 5px 8px;
+  font-size: 12px;
+}
+
+.port-delete-btn {
+  width: 24px;
+  height: 24px;
+  background: none;
+  border: 1px solid #2d3340;
+  border-radius: 4px;
+  color: #5a6a7a;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  padding: 0;
+  margin: auto;
+  transition: color 0.12s, border-color 0.12s;
+}
+
+.port-delete-btn:hover {
+  color: #e57373;
+  border-color: #e57373;
+}
+
+.add-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  background: #252b38;
+  border: 1px solid #2d3340;
+  border-radius: 6px;
+  color: #9baab8;
+  font-size: 12px;
+  font-family: system-ui, sans-serif;
+  cursor: pointer;
+  transition: background 0.12s;
+  margin-top: 10px;
+}
+
+.add-btn:hover {
+  background: #2d3340;
+  color: #e2e8f0;
+}
+
+/* Color swatches in style tab */
+.style-color-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.style-color-swatch {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: border-color 0.1s, transform 0.1s, box-shadow 0.1s;
+}
+
+.style-color-swatch:hover {
+  transform: scale(1.1);
+}
+
+.style-color-swatch.active {
+  border-color: #ffffff;
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.2);
+}
+
+/* Dialog buttons */
+.dialog-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: system-ui, sans-serif;
+  transition: background 0.12s;
+  border: 1px solid transparent;
+}
+
+.dialog-btn.primary {
+  background: #2c6eb5;
+  color: #e8f1fc;
+  border-color: #3a7cc8;
+}
+
+.dialog-btn.primary:hover {
+  background: #3478c0;
+}
+
+.dialog-btn.secondary {
+  background: #252b38;
+  color: #9baab8;
+  border-color: #2d3340;
+}
+
+.dialog-btn.secondary:hover {
+  background: #2d3340;
+}
+
+.port-direction-badge {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.port-direction-badge.input {
+  background: #1e3a5a;
+  color: #5B9BD5;
+}
+
+.port-direction-badge.output {
+  background: #1a3a2a;
+  color: #5BA85C;
+}
+
+/* ── Code tab ── */
+.dialog.wide {
+  width: 680px;
+}
+
+.code-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.code-lang-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #2d3340;
+}
+
+.code-lang-row label {
+  font-size: 11px;
+  color: #6b7a8d;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.code-lang-select {
+  width: auto;
+  min-width: 130px;
+}
+
+.code-lang-hint {
+  font-size: 11px;
+  color: #4a5566;
+}
+
+.code-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.code-field-header {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.code-field-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #90bfe0;
+}
+
+.code-field-desc {
+  font-size: 11px;
+  color: #4a5566;
+}
+
+.code-editor {
+  font-family: 'Fira Code', 'Cascadia Code', 'JetBrains Mono', 'Consolas', 'Courier New', monospace;
+  font-size: 12px;
+  line-height: 1.55;
+  background: #0d0f14;
+  color: #c9d1d9;
+  border: 1px solid #2d3340;
+  border-radius: 6px;
+  padding: 10px 12px;
+  resize: vertical;
+  tab-size: 2;
+  min-height: 70px;
+  width: 100%;
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.code-editor:focus {
+  border-color: #4A90D9;
+  box-shadow: 0 0 0 2px rgba(74, 144, 217, 0.12);
+}
+
+.code-editor::placeholder {
+  color: #3a4556;
+  font-style: italic;
+}
+
+/* ── Parameter rows ── */
+.param-row {
+  background: #1a1d23;
+  border: 1px solid #2d3340;
+  border-radius: 6px;
+  padding: 10px 10px 8px;
+  margin-bottom: 8px;
+}
+
+.param-row-top {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.param-key {
+  flex: 0.8;
+  color: #7EB3D9 !important;
+}
+
+.param-type-select {
+  flex: 0.7;
+  min-width: 110px;
+}
+
+.param-row-value {
+  display: flex;
+}
+
+.param-row-value .dialog-input {
+  flex: 1;
+}
+
+.param-hint {
+  font-size: 11px;
+  color: #5a8aaa;
+  margin-top: 6px;
+  line-height: 1.4;
+}
+
+.param-hint code {
+  background: #0d0f14;
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-family: monospace;
+  color: #90bfe0;
+}
+
+.empty-hint {
+  color: #4a5566;
+  font-size: 13px;
+  text-align: center;
+  padding: 20px 0;
+}
+
+.section-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #4a5566;
+  margin-bottom: 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #2d3340;
+}

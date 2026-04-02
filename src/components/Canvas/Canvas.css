@@ -1,0 +1,58 @@
+.canvas-container {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background-color: #16181f;
+  user-select: none;
+}
+
+.canvas-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.canvas-svg.panning {
+  cursor: grabbing;
+}
+
+.canvas-svg.default {
+  cursor: default;
+}
+
+.canvas-svg.connecting {
+  cursor: crosshair;
+}
+
+.selection-rect {
+  fill: rgba(74, 144, 217, 0.08);
+  stroke: #4A90D9;
+  stroke-width: 1;
+  stroke-dasharray: 4 3;
+}
+
+.drag-connection-line {
+  fill: none;
+  stroke: #5B9BD5;
+  stroke-width: 2;
+  stroke-dasharray: 6 4;
+  stroke-linecap: round;
+  pointer-events: none;
+}
+
+.zoom-indicator {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  background: #22262e;
+  border: 1px solid #2d3340;
+  border-radius: 6px;
+  padding: 4px 10px;
+  color: #6b7a8d;
+  font-size: 12px;
+  font-family: system-ui, sans-serif;
+  pointer-events: none;
+}

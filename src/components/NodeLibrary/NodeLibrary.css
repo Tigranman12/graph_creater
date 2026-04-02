@@ -1,0 +1,143 @@
+.node-library {
+  width: 200px;
+  min-width: 200px;
+  background: #22262e;
+  border-right: 1px solid #2d3340;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.node-library-header {
+  padding: 14px 12px;
+  border-bottom: 1px solid #2d3340;
+}
+
+.node-library-header h3 {
+  margin: 0 0 8px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #9baab8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.node-library-search {
+  width: 100%;
+  background: #1a1d23;
+  border: 1px solid #2d3340;
+  border-radius: 5px;
+  color: #e2e8f0;
+  font-size: 12px;
+  padding: 6px 10px;
+  box-sizing: border-box;
+  font-family: system-ui, sans-serif;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.node-library-search:focus {
+  border-color: #4A90D9;
+}
+
+.node-library-search::placeholder {
+  color: #3a4556;
+}
+
+.node-library-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+  scrollbar-width: thin;
+  scrollbar-color: #2d3340 transparent;
+}
+
+.node-library-body::-webkit-scrollbar {
+  width: 4px;
+}
+
+.node-library-body::-webkit-scrollbar-thumb {
+  background-color: #2d3340;
+  border-radius: 2px;
+}
+
+.node-library-section-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: #4a5566;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 8px 4px 4px;
+}
+
+.node-template-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid transparent;
+  font-family: system-ui, sans-serif;
+  transition: background 0.12s, border-color 0.12s;
+  margin-bottom: 3px;
+}
+
+.node-template-btn:hover {
+  background: #1e222a;
+  border-color: #2d3340;
+}
+
+.node-template-btn:active {
+  background: #252b38;
+}
+
+.template-color-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.template-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  flex: 1;
+  min-width: 0;
+}
+
+.template-name {
+  font-size: 12px;
+  font-weight: 500;
+  color: #c8d4e0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.template-subtitle {
+  font-size: 10px;
+  color: #5a6a7a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.template-port-count {
+  font-size: 10px;
+  color: #4a5566;
+  flex-shrink: 0;
+}
+
+.node-library-hint {
+  padding: 10px 10px 14px;
+  font-size: 10px;
+  color: #3a4556;
+  text-align: center;
+  line-height: 1.5;
+}

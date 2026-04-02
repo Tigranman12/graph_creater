@@ -1,0 +1,153 @@
+.toolbar {
+  height: 46px;
+  min-height: 46px;
+  background: #1e222b;
+  border-bottom: 1px solid #2d3340;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  gap: 4px;
+  position: relative;
+  z-index: 10;
+}
+
+.toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.toolbar-separator {
+  width: 1px;
+  height: 22px;
+  background: #2d3340;
+  margin: 0 6px;
+}
+
+.toolbar-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  height: 30px;
+  padding: 0 10px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  color: #9baab8;
+  font-size: 12px;
+  font-family: system-ui, -apple-system, sans-serif;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+
+.toolbar-btn:hover {
+  background: #252b38;
+  border-color: #2d3340;
+  color: #e2e8f0;
+}
+
+.toolbar-btn:active {
+  background: #2a3040;
+}
+
+.toolbar-btn.icon-only {
+  padding: 0 8px;
+  min-width: 30px;
+}
+
+.toolbar-btn.primary {
+  background: #2c4e7a;
+  color: #90CAF9;
+  border-color: #3a6094;
+}
+
+.toolbar-btn.primary:hover {
+  background: #3460a0;
+}
+
+.toolbar-btn.danger {
+  color: #ef9a9a;
+}
+
+.toolbar-btn.danger:hover {
+  background: #3a2020;
+  border-color: #4a2a2a;
+}
+
+.toolbar-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.toolbar-btn:disabled:hover {
+  background: transparent;
+  border-color: transparent;
+  color: #9baab8;
+}
+
+.toolbar-icon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.toolbar-path {
+  max-width: 180px;
+  color: #7f8ea3;
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 6px;
+}
+
+.toolbar-center {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.toolbar-project-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #c8d4e0;
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 4px 12px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  cursor: text;
+  transition: border-color 0.15s;
+}
+
+.toolbar-project-name:hover {
+  border-color: #2d3340;
+}
+
+.toolbar-project-name-input {
+  font-size: 13px;
+  font-weight: 600;
+  color: #e2e8f0;
+  background: #1a1d23;
+  border: 1px solid #4A90D9;
+  border-radius: 4px;
+  padding: 4px 10px;
+  outline: none;
+  font-family: system-ui, sans-serif;
+  width: 200px;
+  text-align: center;
+}
+
+.toolbar-kbd {
+  font-size: 10px;
+  color: #4a5566;
+  background: #1a1d23;
+  border: 1px solid #2d3340;
+  border-radius: 3px;
+  padding: 0 3px;
+}
