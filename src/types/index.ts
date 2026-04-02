@@ -3,6 +3,7 @@ export type PortSide = 'left' | 'right' | 'top' | 'bottom'
 export type ParamType = 'text' | 'number' | 'port_generator' | 'flag'
 export type CodeLanguage = 'cpp' | 'systemc' | 'python' | 'tcl' | 'plain'
 export type ModuleKind = 'behavioral' | 'hierarchical'
+export type ModuleType = 'behavioral' | 'structural'
 
 export interface Port {
   id: string
@@ -33,6 +34,7 @@ export interface GraphNode {
   id: string
   name: string
   subtitle: string
+  moduleType: ModuleType
   moduleKind: ModuleKind
   subgraphId?: string
   x: number

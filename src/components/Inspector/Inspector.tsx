@@ -32,6 +32,7 @@ const Inspector: React.FC = () => {
   const duplicateNode = useGraphStore(s => s.duplicateNode)
   const lockNode = useGraphStore(s => s.lockNode)
   const collapseNode = useGraphStore(s => s.collapseNode)
+  const groupSelectedAsSubmodule = useGraphStore(s => s.groupSelectedAsSubmodule)
   const enterHierarchyByNode = useGraphStore(s => s.enterHierarchyByNode)
   const exitHierarchy = useGraphStore(s => s.exitHierarchy)
 
@@ -96,18 +97,18 @@ const Inspector: React.FC = () => {
                 <label>Kind</label>
                 <select
                   className="inspector-input"
-                  value={node.moduleKind}
+                  value={node.moduleType}
                   onChange={e => {
-                    const nextKind = e.target.value as GraphNode['moduleKind']
-                    if (nextKind === 'hierarchical') {
+                    const nextType = e.target.value as GraphNode['moduleType']
+                    if (nextType === 'structural') {
                       ensureHierarchyForNode(node.id)
                     } else {
-                      updateNode(node.id, { moduleKind: 'behavioral' })
+                      updateNode(node.id, { moduleType: 'behavioral', moduleKind: 'behavioral' })
                     }
                   }}
                 >
                   <option value="behavioral">behavioral</option>
-                  <option value="hierarchical">hierarchical</option>
+                  <option value="structural">structural</option>
                 </select>
               </div>
             </div>
@@ -384,6 +385,14 @@ const Inspector: React.FC = () => {
         <div className="inspector-section">
           <div className="inspector-section-title">Quick Actions</div>
           <div className="btn-group" style={{ flexDirection: 'column' }}>
+            <button
+              className="inspector-btn primary"
+              style={{ width: '100%' }}
+              onClick={groupSelectedAsSubmodule}
+              disabled={selectedNodeIds.length < 2}
+            >
+              Group Selected
+            </button>
             <button
               className="inspector-btn secondary"
               style={{ width: '100%' }}

@@ -24,6 +24,7 @@ const Toolbar: React.FC = () => {
   const fitToScreen = useGraphStore(s => s.fitToScreen)
   const copySelected = useGraphStore(s => s.copySelected)
   const pasteClipboard = useGraphStore(s => s.pasteClipboard)
+  const groupSelectedAsSubmodule = useGraphStore(s => s.groupSelectedAsSubmodule)
   const exitHierarchy = useGraphStore(s => s.exitHierarchy)
 
   const [editingName, setEditingName] = useState(false)
@@ -114,6 +115,7 @@ const Toolbar: React.FC = () => {
           store.selectedNodeIds.forEach(id => store.duplicateNode(id))
           break
         }
+        case 'group-selected': groupSelectedAsSubmodule(); break
         case 'go-up-hierarchy': exitHierarchy(); break
         case 'select-all': {
           const store = useGraphStore.getState()
@@ -125,7 +127,7 @@ const Toolbar: React.FC = () => {
 
     return cleanup
   }, [handleNewProject, handleOpen, handleSave, handleExport, undo, redo,
-    handleZoomIn, handleZoomOut, handleZoomReset, handleFitToScreen, deleteSelectedNodes, exitHierarchy])
+    handleZoomIn, handleZoomOut, handleZoomReset, handleFitToScreen, deleteSelectedNodes, groupSelectedAsSubmodule, exitHierarchy])
 
   return (
     <div className="toolbar">
@@ -244,6 +246,14 @@ const Toolbar: React.FC = () => {
           title="Paste (Ctrl+V)"
         >
           Paste
+        </button>
+        <button
+          className="toolbar-btn"
+          onClick={groupSelectedAsSubmodule}
+          disabled={selectedNodeIds.length < 2}
+          title="Group as structural submodule (Ctrl+G)"
+        >
+          Group
         </button>
         <button
           className="toolbar-btn danger"

@@ -115,6 +115,11 @@ function setupMenu(): void {
           label: 'Duplicate Selected',
           accelerator: 'CmdOrCtrl+D',
           click: () => sendMenuAction('duplicate-selected')
+        },
+        {
+          label: 'Group as Submodule',
+          accelerator: 'CmdOrCtrl+G',
+          click: () => sendMenuAction('group-selected')
         }
       ]
     },

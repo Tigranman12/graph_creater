@@ -61,7 +61,7 @@ const NodeConfigDialog: React.FC = () => {
       setLocalNode({
         name: node.name,
         subtitle: node.subtitle,
-        moduleKind: node.moduleKind,
+        moduleType: node.moduleType,
         styleColor: node.styleColor,
         width: node.width,
         height: node.height
@@ -105,14 +105,15 @@ const NodeConfigDialog: React.FC = () => {
     updateNode(node.id, {
       name: localNode.name || node.name,
       subtitle: localNode.subtitle ?? node.subtitle,
-      moduleKind: localNode.moduleKind || node.moduleKind,
+      moduleType: localNode.moduleType || node.moduleType,
+      moduleKind: (localNode.moduleType || node.moduleType) === 'structural' ? 'hierarchical' : 'behavioral',
       styleColor: localNode.styleColor || node.styleColor,
       width: localNode.width || node.width,
       parameters: finalParams,
       code: localCode
     })
 
-    if ((localNode.moduleKind || node.moduleKind) === 'hierarchical') {
+    if ((localNode.moduleType || node.moduleType) === 'structural') {
       ensureHierarchyForNode(node.id)
     }
 
@@ -207,14 +208,14 @@ const NodeConfigDialog: React.FC = () => {
                 <input className="dialog-input" value={node.id} readOnly />
               </div>
               <div className="dialog-field">
-                <label>Module Kind</label>
+                <label>Module Type</label>
                 <select
                   className="dialog-input dialog-select"
-                  value={localNode.moduleKind || 'behavioral'}
-                  onChange={e => setLocalNode(prev => ({ ...prev, moduleKind: e.target.value as GraphNode['moduleKind'] }))}
+                  value={localNode.moduleType || 'behavioral'}
+                  onChange={e => setLocalNode(prev => ({ ...prev, moduleType: e.target.value as GraphNode['moduleType'] }))}
                 >
                   <option value="behavioral">behavioral</option>
-                  <option value="hierarchical">hierarchical</option>
+                  <option value="structural">structural</option>
                 </select>
               </div>
               <div className="dialog-field">
@@ -276,7 +277,7 @@ const NodeConfigDialog: React.FC = () => {
               )}
 
               <button className="add-btn" onClick={handleAddPort}>+ Add Port</button>
-              {(localNode.moduleKind || node.moduleKind) === 'hierarchical' && (
+              {(localNode.moduleType || node.moduleType) === 'structural' && (
                 <p style={{ fontSize: 11, color: '#4a7090', marginTop: 10 }}>
                   This module owns an internal netlist. Use the folder badge or the Up action to navigate in and out.
                 </p>

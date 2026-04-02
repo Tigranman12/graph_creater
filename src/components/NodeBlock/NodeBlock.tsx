@@ -54,8 +54,8 @@ export const NodeBlock: React.FC<NodeBlockProps> = ({
   const { x, y, width, styleColor, name, subtitle, ports, locked, collapsed } = node
 
   const bodyColor = darkenColor(styleColor, 0.5)
-  const headerColorLight = lightenColor(styleColor, 0.1)
-  const borderColor = isSelected ? '#90CAF9' : lightenColor(styleColor, 0.05)
+  const isStructural = node.moduleType === 'structural' || node.moduleKind === 'hierarchical'
+  const borderColor = isSelected ? '#90CAF9' : isStructural ? '#7DD3A7' : lightenColor(styleColor, 0.05)
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     if (locked) return
@@ -123,7 +123,8 @@ export const NodeBlock: React.FC<NodeBlockProps> = ({
         ry={8}
         fill={bodyColor}
         stroke={borderColor}
-        strokeWidth={isSelected ? 2 : 1}
+        strokeWidth={isSelected ? 2 : isStructural ? 1.8 : 1}
+        strokeDasharray={isStructural ? '6 4' : undefined}
       />
 
       {/* Header background */}
@@ -191,7 +192,33 @@ export const NodeBlock: React.FC<NodeBlockProps> = ({
             dominantBaseline="middle"
             style={{ userSelect: 'none', pointerEvents: 'none' }}
           >
-            ⛁
+            H
+          </text>
+        </g>
+      )}
+
+      {isStructural && (
+        <g transform={`translate(${width - 48}, 10)`}>
+          <rect
+            x={-18}
+            y={-8}
+            width={32}
+            height={16}
+            rx={8}
+            fill="rgba(18, 52, 35, 0.55)"
+            stroke="rgba(125, 211, 167, 0.45)"
+          />
+          <text
+            x={-2}
+            y={1}
+            fill="#c8f3de"
+            fontSize={8}
+            fontWeight="700"
+            textAnchor="middle"
+            dominantBaseline="middle"
+            style={{ userSelect: 'none', pointerEvents: 'none' }}
+          >
+            STRUCT
           </text>
         </g>
       )}

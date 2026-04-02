@@ -14,6 +14,7 @@ const App: React.FC = () => {
   const copySelected = useGraphStore(s => s.copySelected)
   const pasteClipboard = useGraphStore(s => s.pasteClipboard)
   const deleteSelectedNodes = useGraphStore(s => s.deleteSelectedNodes)
+  const groupSelectedAsSubmodule = useGraphStore(s => s.groupSelectedAsSubmodule)
   const exitHierarchy = useGraphStore(s => s.exitHierarchy)
 
   // Global keyboard shortcuts
@@ -37,6 +38,9 @@ const App: React.FC = () => {
         copySelected()
       } else if (ctrl && e.key === 'v') {
         pasteClipboard()
+      } else if (ctrl && e.key.toLowerCase() === 'g') {
+        e.preventDefault()
+        groupSelectedAsSubmodule()
       } else if (e.key === ' ') {
         e.preventDefault()
         exitHierarchy()
@@ -47,7 +51,7 @@ const App: React.FC = () => {
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [undo, redo, copySelected, pasteClipboard, deleteSelectedNodes, exitHierarchy])
+  }, [undo, redo, copySelected, pasteClipboard, deleteSelectedNodes, groupSelectedAsSubmodule, exitHierarchy])
 
   return (
     <div className="app">

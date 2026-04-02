@@ -55,6 +55,7 @@ interface GraphActions {
   addNode: (template: NodeTemplate, x?: number, y?: number) => string
   updateNode: (id: string, partial: Partial<GraphNode>) => void
   ensureHierarchyForNode: (id: string) => void
+  groupSelectedAsSubmodule: () => void
   deleteNode: (id: string) => void
   deleteSelectedNodes: () => void
   duplicateNode: (id: string) => string
@@ -121,6 +122,7 @@ function createNodeBase(
     id,
     name,
     subtitle,
+    moduleType: moduleKind === 'hierarchical' ? 'structural' : 'behavioral',
     moduleKind,
     x,
     y,
@@ -313,7 +315,7 @@ function syncGeneratedPortsInNetlist(netlist: Netlist, nodeId: string): Netlist 
 
 function ensureHierarchyNetlist(db: NetlistDatabase, node: GraphNode): { db: NetlistDatabase; node: GraphNode } {
   if (node.subgraphId && db.netlists[node.subgraphId]) {
-    return { db, node: { ...node, moduleKind: 'hierarchical' } }
+    return { db, node: { ...node, moduleKind: 'hierarchical', moduleType: 'structural' } }
   }
 
   const childNetlist = createNetlist(`${node.name} Netlist`)
@@ -328,6 +330,7 @@ function ensureHierarchyNetlist(db: NetlistDatabase, node: GraphNode): { db: Net
     },
     node: {
       ...node,
+      moduleType: 'structural',
       moduleKind: 'hierarchical',
       subgraphId: childNetlist.id
     }
@@ -402,6 +405,182 @@ function duplicateNetlistTree(
   }
 }
 
+function createInterfaceNode(
+  name: string,
+  x: number,
+  y: number,
+  direction: PortDirection
+): GraphNode {
+  const node = createNodeBase(uuidv4(), name, 'Interface', x, y, direction === 'input' ? '#4A90D9' : '#5BA85C')
+  node.parameters = [
+    { id: uuidv4(), key: 'role', value: direction === 'input' ? 'submodule_input' : 'submodule_output', paramType: 'text' }
+  ]
+  node.ports = [
+    createPort(
+      node.id,
+      direction === 'input' ? 'out' : 'in',
+      direction === 'input' ? 'output' : 'input',
+      direction === 'input' ? 'right' : 'left',
+      0
+    )
+  ]
+  node.width = 140
+  return node
+}
+
+function groupNodesIntoSubmodule(
+  db: NetlistDatabase,
+  netlistId: string,
+  selectedNodeIds: string[]
+): { db: NetlistDatabase; netlist: Netlist; moduleNodeId: string } | null {
+  const current = db.netlists[netlistId]
+  if (!current || selectedNodeIds.length < 2) return null
+
+  const selectedSet = new Set(selectedNodeIds)
+  const selectedNodes = current.nodes.filter(node => selectedSet.has(node.id))
+  if (selectedNodes.length < 2) return null
+
+  const internalConnections = current.connections.filter(connection =>
+    selectedSet.has(connection.fromNodeId) && selectedSet.has(connection.toNodeId)
+  )
+  const incomingConnections = current.connections.filter(connection =>
+    !selectedSet.has(connection.fromNodeId) && selectedSet.has(connection.toNodeId)
+  )
+  const outgoingConnections = current.connections.filter(connection =>
+    selectedSet.has(connection.fromNodeId) && !selectedSet.has(connection.toNodeId)
+  )
+
+  let minX = Infinity
+  let minY = Infinity
+  let maxX = -Infinity
+  let maxY = -Infinity
+  selectedNodes.forEach(node => {
+    minX = Math.min(minX, node.x)
+    minY = Math.min(minY, node.y)
+    maxX = Math.max(maxX, node.x + node.width)
+    maxY = Math.max(maxY, node.y + computeNodeHeight(node))
+  })
+
+  const childNetlist = createNetlist(`Submodule ${selectedNodes[0].name}`)
+  const movedNodes = selectedNodes.map(node => ({
+    ...cloneDeep(node),
+    x: node.x - minX + 220,
+    y: node.y - minY + 120
+  }))
+
+  const childNodes: GraphNode[] = [...movedNodes]
+  const childConnections: Connection[] = internalConnections.map(connection => cloneDeep(connection))
+  const moduleNodeId = uuidv4()
+  const modulePorts: Port[] = []
+  const parentConnections: Connection[] = []
+
+  incomingConnections.forEach((connection, index) => {
+    const originalTarget = selectedNodes.find(node => node.id === connection.toNodeId)?.ports.find(port => port.id === connection.toPortId)
+    const portName = originalTarget ? `${originalTarget.name}_in` : `in${index}`
+    const modulePort = createPort(moduleNodeId, portName, 'input', 'left', index)
+    modulePorts.push(modulePort)
+
+    const boundaryNode = createInterfaceNode(portName, 40, 80 + index * 70, 'input')
+    childNodes.push(boundaryNode)
+    childConnections.push({
+      id: uuidv4(),
+      fromNodeId: boundaryNode.id,
+      fromPortId: boundaryNode.ports[0].id,
+      toNodeId: connection.toNodeId,
+      toPortId: connection.toPortId,
+      routePoints: [],
+      label: connection.label
+    })
+
+    parentConnections.push({
+      ...cloneDeep(connection),
+      id: uuidv4(),
+      toNodeId: moduleNodeId,
+      toPortId: modulePort.id
+    })
+  })
+
+  outgoingConnections.forEach((connection, index) => {
+    const originalSource = selectedNodes.find(node => node.id === connection.fromNodeId)?.ports.find(port => port.id === connection.fromPortId)
+    const portName = originalSource ? `${originalSource.name}_out` : `out${index}`
+    const modulePort = createPort(moduleNodeId, portName, 'output', 'right', index)
+    modulePorts.push(modulePort)
+
+    const boundaryNode = createInterfaceNode(portName, Math.max(460, maxX - minX + 260), 80 + index * 70, 'output')
+    childNodes.push(boundaryNode)
+    childConnections.push({
+      id: uuidv4(),
+      fromNodeId: connection.fromNodeId,
+      fromPortId: connection.fromPortId,
+      toNodeId: boundaryNode.id,
+      toPortId: boundaryNode.ports[0].id,
+      routePoints: [],
+      label: connection.label
+    })
+
+    parentConnections.push({
+      ...cloneDeep(connection),
+      id: uuidv4(),
+      fromNodeId: moduleNodeId,
+      fromPortId: modulePort.id
+    })
+  })
+
+  childNetlist.nodes = childNodes
+  childNetlist.connections = childConnections
+  childNetlist.canvasOffset = { ...DEFAULT_OFFSET }
+  childNetlist.canvasScale = 1
+
+  const moduleNode: GraphNode = {
+    id: moduleNodeId,
+    name: `Submodule ${selectedNodes.length}`,
+    subtitle: 'Structural Module',
+    moduleType: 'structural',
+    moduleKind: 'hierarchical',
+    subgraphId: childNetlist.id,
+    x: minX + (maxX - minX) / 2 - 110,
+    y: minY + (maxY - minY) / 2 - 60,
+    width: 220,
+    height: 120,
+    styleColor: '#5BA85C',
+    ports: modulePorts,
+    parameters: [
+      { id: uuidv4(), key: 'module_type', value: 'structural', paramType: 'text' },
+      { id: uuidv4(), key: 'group_size', value: String(selectedNodes.length), paramType: 'number' }
+    ],
+    code: { ...DEFAULT_CODE },
+    locked: false,
+    collapsed: false
+  }
+
+  const nextParentNetlist: Netlist = {
+    ...current,
+    nodes: [...current.nodes.filter(node => !selectedSet.has(node.id)), moduleNode],
+    connections: [
+      ...current.connections.filter(connection =>
+        !selectedSet.has(connection.fromNodeId) && !selectedSet.has(connection.toNodeId)
+      ),
+      ...parentConnections
+    ]
+  }
+
+  const nextDb: NetlistDatabase = {
+    ...db,
+    libraryNetlistIds: [...new Set([...db.libraryNetlistIds, childNetlist.id])],
+    netlists: {
+      ...db.netlists,
+      [netlistId]: nextParentNetlist,
+      [childNetlist.id]: childNetlist
+    }
+  }
+
+  return {
+    db: nextDb,
+    netlist: nextParentNetlist,
+    moduleNodeId
+  }
+}
+
 function collectReferencedNetlists(
   sourceNetlists: Record<string, Netlist>,
   nodes: GraphNode[],
@@ -428,6 +607,7 @@ function createNodeFromTemplate(
     id,
     name: template.name,
     subtitle: template.subtitle,
+    moduleType: (template.moduleKind || 'behavioral') === 'hierarchical' ? 'structural' : 'behavioral',
     moduleKind: template.moduleKind || 'behavioral',
     x,
     y,
@@ -478,8 +658,9 @@ function convertLegacyProjectToDb(data: {
 }): NetlistDatabase {
   const root = createNetlist(data.name || 'Top Netlist')
   root.nodes = (data.nodes || []).map(node => ({
-    ...cloneDeep(node),
-    moduleKind: node.moduleKind || (node.subgraphId ? 'hierarchical' : 'behavioral'),
+      ...cloneDeep(node),
+      moduleType: node.moduleType || (node.moduleKind === 'hierarchical' ? 'structural' : 'behavioral'),
+      moduleKind: node.moduleKind || (node.subgraphId ? 'hierarchical' : 'behavioral'),
     code: node.code || { ...DEFAULT_CODE },
     parameters: (node.parameters || []).map(parameter => ({ paramType: 'text' as const, ...parameter }))
   }))
@@ -520,6 +701,7 @@ function normalizeDb(data: unknown): NetlistDatabase {
         ...cloneDeep(safeNetlist),
         nodes: (safeNetlist.nodes || []).map(node => ({
           ...cloneDeep(node),
+          moduleType: node.moduleType || (node.moduleKind === 'hierarchical' ? 'structural' : 'behavioral'),
           moduleKind: node.moduleKind || (node.subgraphId ? 'hierarchical' : 'behavioral'),
           code: node.code || { ...DEFAULT_CODE },
           parameters: (node.parameters || []).map(parameter => ({ paramType: 'text' as const, ...parameter }))
@@ -593,11 +775,21 @@ export const useGraphStore = create<GraphStore>((set, get) => ({
       if (!targetNode) return state
 
       let nextDb = state.db
-      let nextNode = { ...targetNode, ...partial }
-      if (nextNode.moduleKind === 'hierarchical') {
+      let nextNode = {
+        ...targetNode,
+        ...partial,
+        moduleType: partial.moduleType || (partial.moduleKind === 'hierarchical' ? 'structural' : partial.moduleKind === 'behavioral' ? 'behavioral' : targetNode.moduleType)
+      }
+      if (nextNode.moduleKind === 'hierarchical' || nextNode.moduleType === 'structural') {
         const ensured = ensureHierarchyNetlist(nextDb, nextNode)
         nextDb = ensured.db
         nextNode = ensured.node
+      } else {
+        nextNode = {
+          ...nextNode,
+          moduleKind: 'behavioral',
+          moduleType: 'behavioral'
+        }
       }
 
       let nextNetlist: Netlist = {
@@ -644,6 +836,19 @@ export const useGraphStore = create<GraphStore>((set, get) => ({
       return {
         ...pushHistory(state),
         ...buildStateForNetlist(nextDb, state.currentNetlistId, state.navigationStack)
+      }
+    })
+  },
+
+  groupSelectedAsSubmodule: () => {
+    set(state => {
+      const grouped = groupNodesIntoSubmodule(state.db, state.currentNetlistId, state.selectedNodeIds)
+      if (!grouped) return state
+      return {
+        ...pushHistory(state),
+        ...buildStateForNetlist(grouped.db, state.currentNetlistId, state.navigationStack),
+        selectedNodeIds: [grouped.moduleNodeId],
+        selectedConnectionId: null
       }
     })
   },
