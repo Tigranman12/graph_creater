@@ -1,0 +1,6 @@
+.codex/
+node_modules/
+dist/
+logs/
+*.tsbuildinfo
+*.log
