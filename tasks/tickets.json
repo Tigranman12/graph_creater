@@ -1,0 +1,32 @@
+[
+  {
+    "id": "TICKET-001",
+    "title": "Module-only library UI",
+    "status": "done",
+    "summary": "Remove old template types and keep only a single Module entry in the library."
+  },
+  {
+    "id": "TICKET-002",
+    "title": "JSON netlist database and hierarchy navigation",
+    "status": "done",
+    "summary": "Persist project as a netlist database with nested netlists and support drill-down / drill-up navigation."
+  },
+  {
+    "id": "TICKET-003",
+    "title": "Behavioral and structural module typing",
+    "status": "partial",
+    "summary": "Expose explicit type fields and distinguish hierarchical modules clearly in the UI."
+  },
+  {
+    "id": "TICKET-004",
+    "title": "Group selected nodes into structural submodule",
+    "status": "partial",
+    "summary": "Convert selected nodes into a hierarchical submodule with auto-generated ports and preserved external connectivity."
+  },
+  {
+    "id": "TICKET-005",
+    "title": "Task checker and continuation workflow",
+    "status": "done",
+    "summary": "Provide repo-tracked tasks plus a checker script for future AI sessions."
+  }
+]
