@@ -34,5 +34,17 @@
     "title": "Ctrl-restricted multi-selection",
     "status": "done",
     "summary": "Multi-select nodes/connections only when Ctrl key is held, otherwise clear selection on click."
+  },
+  {
+    "id": "TICKET-007",
+    "title": "Fix persisting selection/ghost dotted lines",
+    "status": "done",
+    "summary": "Clear dotted lines and port drag ghosts correctly on mouse up."
+  },
+  {
+    "id": "TICKET-008",
+    "title": "High-performance rendering and Quadtree optimization",
+    "status": "partial",
+    "summary": "Enable smooth editing and navigation of 200k objects using Quadtree and LoD."
   }
 ]
