@@ -66,36 +66,28 @@ It is a visual netlist editor only.
 
 ## Current Implemented State
 - Left library shows only `Module`
-- Startup example netlist:
-  - `Input A`
-  - `Input B`
-  - `Adder`
-  - `Output`
+- Startup example netlist: `Input A`, `Input B`, `Adder`, `Output`
 - Save/load/export JSON DB
 - Copy/paste/duplicate/delete nodes
 - Node IDs shown in UI
-- Code fields:
-  - init
-  - fire
-  - finish
+- Code fields: init, fire, finish
 - Ctrl-drag port repositioning
-- Hierarchy navigation exists:
-  - enter from node badge
-  - enter from inspector
-  - exit from toolbar `Up`
-  - exit from `Tools -> Go Up`
-  - exit with `Space`
+- Hierarchy navigation: badge, inspector, toolbar, shortcuts
+- Ctrl-restricted multi-selection for nodes and connections
+- Strong hierarchy visual styling (STRUCT badge, double-borders)
+- Explicit structural grouping from selected nodes with port generation
+- High-performance Quadtree spatial indexing and Frustum Culling
+- Level of Detail (LoD) rendering for massive netlists
 
 ## Current UI Expectations
 - Module-only library
-- Hierarchical modules must be visually distinct
-- Every module must have visible name and stored ID
+- Hierarchical modules must be visually distinct (dashed inner borders + STRUCT badge)
+- Multi-selection requires holding Ctrl/Cmd
 
-## In Progress
-- stronger hierarchy visual styling
-- explicit structural grouping from selected nodes
-- auto-generated submodule ports from external connections
-- preserved external connectivity during grouping
+## Future Goals
+- 200k+ object handling via Canvas/WebGL hybrid layers
+- Web Worker based routing for zero-lag background compute
+
 
 ## Constraints
 - Do not reintroduce old library types:
