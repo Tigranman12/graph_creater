@@ -137,6 +137,23 @@ export const NodeBlock: React.FC<NodeBlockProps> = ({
         strokeDasharray={isStructural ? '6 4' : undefined}
       />
 
+      {/* Inner container border for structural modules */}
+      {isStructural && !lowDetail && (
+        <rect
+          x={4}
+          y={4}
+          width={width - 8}
+          height={nodeHeight - 8}
+          rx={6}
+          ry={6}
+          fill="none"
+          stroke={borderColor}
+          strokeWidth={1}
+          strokeDasharray="2 2"
+          opacity={0.4}
+        />
+      )}
+
       {/* Header background */}
       {lowDetail ? (
         <rect
