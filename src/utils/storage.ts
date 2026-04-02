@@ -3,12 +3,11 @@ export async function saveProjectToFile(
   filePath?: string
 ): Promise<{ success: boolean; filePath?: string; error?: string }> {
   if (!window.electronAPI) {
-    // Browser fallback: download
     const blob = new Blob([jsonString], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = 'project.gcg'
+    a.download = 'project.json'
     a.click()
     URL.revokeObjectURL(url)
     return { success: true }
@@ -48,7 +47,7 @@ export async function loadProjectFromFile(): Promise<{ success: boolean; data?: 
     const data = JSON.parse(result.data)
     return { success: true, data }
   } catch (err) {
-    return { success: false, error: 'Invalid JSON file' }
+    return { success: false, error: 'Invalid project JSON file' }
   }
 }
 

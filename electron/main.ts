@@ -196,10 +196,10 @@ ipcMain.handle('load-file', async (_event, filePath: string) => {
 ipcMain.handle('show-save-dialog', async () => {
   if (!mainWindow) return { canceled: true }
   const result = await dialog.showSaveDialog(mainWindow, {
-    title: 'Save Project',
-    defaultPath: 'project.gcg',
+    title: 'Save Project JSON',
+    defaultPath: 'project.json',
     filters: [
-      { name: 'Graph Creator Project', extensions: ['gcg', 'json'] },
+      { name: 'Project JSON', extensions: ['json'] },
       { name: 'All Files', extensions: ['*'] }
     ]
   })
@@ -209,9 +209,9 @@ ipcMain.handle('show-save-dialog', async () => {
 ipcMain.handle('show-open-dialog', async () => {
   if (!mainWindow) return { canceled: true }
   const result = await dialog.showOpenDialog(mainWindow, {
-    title: 'Open Project',
+    title: 'Open Project JSON',
     filters: [
-      { name: 'Graph Creator Project', extensions: ['gcg', 'json'] },
+      { name: 'Project JSON', extensions: ['json'] },
       { name: 'All Files', extensions: ['*'] }
     ],
     properties: ['openFile']
