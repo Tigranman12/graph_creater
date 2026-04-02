@@ -42,8 +42,13 @@ export function computeNodeHeight(node: GraphNode): number {
   const headerHeight = 44
   const leftPorts = node.ports.filter(p => p.side === 'left').length
   const rightPorts = node.ports.filter(p => p.side === 'right').length
-  const portRows = Math.max(leftPorts, rightPorts)
-  const minHeight = headerHeight + portRows * 28 + 16
+  const topPorts = node.ports.filter(p => p.side === 'top').length
+  const bottomPorts = node.ports.filter(p => p.side === 'bottom').length
+
+  const sidePortRows = Math.max(leftPorts, rightPorts)
+  const verticalPadding = (topPorts > 0 ? 20 : 0) + (bottomPorts > 0 ? 20 : 0)
+  
+  const minHeight = headerHeight + sidePortRows * 28 + 16 + verticalPadding
   return Math.max(minHeight, node.height)
 }
 

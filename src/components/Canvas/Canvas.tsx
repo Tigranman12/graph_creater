@@ -5,6 +5,7 @@ import { NodeBlock } from '../NodeBlock/NodeBlock'
 import { ConnectionLine } from '../ConnectionLine/ConnectionLine'
 import { GraphNode, Port, PortSide } from '../../types'
 import { getPortAnchor, pointsToSmoothPathD, computeNodeHeight } from '../../engines/routing'
+import { Quadtree } from '../../utils/Quadtree'
 
 function computeSnapSide(point: { x: number; y: number }, node: GraphNode): PortSide {
   const nh = computeNodeHeight(node)
@@ -85,6 +86,67 @@ export const Canvas: React.FC = () => {
   const panStartRef = useRef<{ mouseX: number; mouseY: number; offsetX: number; offsetY: number } | null>(null)
   const nodeDragRef = useRef<DragState | null>(null)
   const isNodeDragging = useRef(false)
+
+  // Quadtree and Frustum Culling
+  const quadtreeRef = useRef<Quadtree | null>(null)
+  const [visibleNodeIds, setVisibleNodeIds] = useState<Set<string>>(new Set())
+
+  // Rebuild Quadtree when nodes change
+  useEffect(() => {
+    // Find bounds of all nodes
+    if (nodes.length === 0) {
+      quadtreeRef.current = null
+      setVisibleNodeIds(new Set())
+      return
+    }
+
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
+    nodes.forEach(n => {
+      const h = computeNodeHeight(n)
+      minX = Math.min(minX, n.x); minY = Math.min(minY, n.y)
+      maxX = Math.max(maxX, n.x + n.width); maxY = Math.max(maxY, n.y + h)
+    })
+
+    // Add some padding
+    const qt = new Quadtree({ x: minX - 1000, y: minY - 1000, width: (maxX - minX) + 2000, height: (maxY - minY) + 2000 })
+    nodes.forEach(n => {
+      qt.insert({ id: n.id, x: n.x, y: n.y, width: n.width, height: computeNodeHeight(n) })
+    })
+    quadtreeRef.current = qt
+  }, [nodes])
+
+  // Update visible nodes based on viewport
+  useEffect(() => {
+    if (!quadtreeRef.current || !containerRef.current) {
+      if (nodes.length > 0 && nodes.length < 100) {
+        setVisibleNodeIds(new Set(nodes.map(n => n.id)))
+      }
+      return
+    }
+
+    const updateVisibility = () => {
+      const rect = containerRef.current!.getBoundingClientRect()
+      const gTopLeft = screenToGraph(0, 0)
+      const gBottomRight = screenToGraph(rect.width, rect.height)
+      
+      const viewport = {
+        x: gTopLeft.x,
+        y: gTopLeft.y,
+        width: gBottomRight.x - gTopLeft.x,
+        height: gBottomRight.y - gTopLeft.y
+      }
+
+      const visible = quadtreeRef.current!.retrieve(viewport)
+      
+      // Also include selected nodes so they don't disappear while dragging if they go off-screen
+      selectedNodeIds.forEach(id => visible.add(id))
+      
+      setVisibleNodeIds(visible)
+    }
+
+    updateVisibility()
+    // We could throttle this if needed
+  }, [canvasOffset, canvasScale, nodes, selectedNodeIds, screenToGraph])
 
   // Convert screen coords to graph coords
   const screenToGraph = useCallback((sx: number, sy: number) => {
@@ -313,7 +375,7 @@ export const Canvas: React.FC = () => {
     isSelecting, selectionRect
   ])
 
-  const handleMouseUp = useCallback((_e: MouseEvent) => {
+  const handleMouseUp = useCallback((e: MouseEvent) => {
     // End port drag (Ctrl+drag reposition)
     if (portDragRef.current) {
       const { nodeId, portId } = portDragRef.current
@@ -322,17 +384,15 @@ export const Canvas: React.FC = () => {
         const portsOnSide = node.ports.filter(p => p.side === portDragSnapSide && p.id !== portId)
         updatePort(nodeId, portId, { side: portDragSnapSide, order: portsOnSide.length })
       }
-      portDragRef.current = null
-      setPortDragPoint(null)
-      setPortDragSnapSide(null)
-      return
     }
+    portDragRef.current = null
+    setPortDragPoint(null)
+    setPortDragSnapSide(null)
 
     // End pan
     if (isPanning) {
       setIsPanning(false)
       panStartRef.current = null
-      return
     }
 
     // End node drag
@@ -340,16 +400,12 @@ export const Canvas: React.FC = () => {
       if (isNodeDragging.current) {
         commitNodeMove(nodeDragRef.current.nodeId)
       }
-      nodeDragRef.current = null
-      isNodeDragging.current = false
-      return
     }
+    nodeDragRef.current = null
+    isNodeDragging.current = false
 
     // Cancel dragging connection if released outside a port
-    if (draggingConnection) {
-      setDraggingConnection(null)
-      return
-    }
+    setDraggingConnection(null)
 
     // Finalize selection rect
     if (isSelecting && selectionRect) {
@@ -380,14 +436,14 @@ export const Canvas: React.FC = () => {
           setSelectedNodes(selected)
         }
       }
-
-      setIsSelecting(false)
-      setSelectionRect(null)
     }
+    setIsSelecting(false)
+    setSelectionRect(null)
   }, [
     isPanning, draggingConnection, setDraggingConnection,
     isSelecting, selectionRect, nodes, screenToGraph,
-    setSelectedNodes, commitNodeMove
+    setSelectedNodes, commitNodeMove, selectedNodeIds,
+    updatePort, portDragPoint, portDragSnapSide
   ])
 
   // Wheel zoom
@@ -572,7 +628,10 @@ export const Canvas: React.FC = () => {
         {/* Main graph group with transform */}
         <g transform={`translate(${canvasOffset.x}, ${canvasOffset.y}) scale(${canvasScale})`}>
           {/* Connections */}
-          {connections.map(conn => (
+          {connections.filter(conn => {
+            if (conn.id === selectedConnectionId) return true
+            return visibleNodeIds.has(conn.fromNodeId) || visibleNodeIds.has(conn.toNodeId)
+          }).map(conn => (
             <ConnectionLine
               key={conn.id}
               connection={conn}
@@ -598,12 +657,13 @@ export const Canvas: React.FC = () => {
           )}
 
           {/* Nodes */}
-          {nodes.map(node => (
+          {nodes.filter(node => visibleNodeIds.has(node.id)).map(node => (
             <NodeBlock
               key={node.id}
               node={node}
               isSelected={selectedNodeIds.includes(node.id)}
               isDraggingConnection={!!draggingConnection}
+              lowDetail={canvasScale < 0.2}
               draggingFromPort={
                 draggingConnection
                   ? nodes.find(n => n.id === draggingConnection.fromNodeId)
