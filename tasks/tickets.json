@@ -14,13 +14,13 @@
   {
     "id": "TICKET-003",
     "title": "Behavioral and structural module typing",
-    "status": "partial",
+    "status": "done",
     "summary": "Expose explicit type fields and distinguish hierarchical modules clearly in the UI."
   },
   {
     "id": "TICKET-004",
     "title": "Group selected nodes into structural submodule",
-    "status": "partial",
+    "status": "done",
     "summary": "Convert selected nodes into a hierarchical submodule with auto-generated ports and preserved external connectivity."
   },
   {
@@ -44,7 +44,7 @@
   {
     "id": "TICKET-008",
     "title": "High-performance rendering and Quadtree optimization",
-    "status": "partial",
+    "status": "done",
     "summary": "Enable smooth editing and navigation of 200k objects using Quadtree and LoD."
   }
 ]
