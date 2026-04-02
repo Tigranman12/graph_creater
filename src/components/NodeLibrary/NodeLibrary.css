@@ -44,6 +44,24 @@
   color: #3a4556;
 }
 
+.node-library-select {
+  width: 100%;
+  background: #1a1d23;
+  border: 1px solid #2d3340;
+  border-radius: 5px;
+  color: #dbe4ef;
+  font-size: 12px;
+  padding: 7px 10px;
+  margin: 6px 0 8px;
+  box-sizing: border-box;
+  font-family: system-ui, sans-serif;
+  outline: none;
+}
+
+.node-library-select:focus {
+  border-color: #4A90D9;
+}
+
 .node-library-body {
   flex: 1;
   overflow-y: auto;
@@ -117,6 +135,42 @@
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 100%;
+}
+
+.netlist-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.netlist-link-btn {
+  width: 100%;
+  background: transparent;
+  border: 1px solid #2d3340;
+  border-radius: 6px;
+  color: #9baab8;
+  text-align: left;
+  padding: 8px 10px;
+  cursor: pointer;
+}
+
+.netlist-link-btn:hover {
+  background: #1e222a;
+  color: #e2e8f0;
+}
+
+.netlist-link-btn.active {
+  background: #263349;
+  border-color: #3d5f8d;
+  color: #cfe5ff;
+}
+
+.netlist-link-name {
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
 }
 
 .template-subtitle {

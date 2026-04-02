@@ -57,6 +57,7 @@ interface GraphActions {
   ensureHierarchyForNode: (id: string) => void
   groupSelectedAsSubmodule: () => void
   flattenNode: (id: string) => void
+  openNetlistById: (id: string) => void
   deleteNode: (id: string) => void
   deleteSelectedNodes: () => void
   duplicateNode: (id: string) => string
@@ -262,6 +263,28 @@ function createSnapshot(state: GraphState): Snapshot {
 
 function snapshotToState(snapshot: Snapshot) {
   return buildStateForNetlist(snapshot.db, snapshot.currentNetlistId, snapshot.navigationStack)
+}
+
+function findPathToNetlist(
+  db: NetlistDatabase,
+  targetId: string,
+  currentId: string = db.rootNetlistId,
+  trail: string[] = []
+): string[] | null {
+  if (currentId === targetId) {
+    return [...trail, currentId]
+  }
+
+  const current = db.netlists[currentId]
+  if (!current) return null
+
+  for (const node of current.nodes) {
+    if (!node.subgraphId || !db.netlists[node.subgraphId]) continue
+    const result = findPathToNetlist(db, targetId, node.subgraphId, [...trail, currentId])
+    if (result) return result
+  }
+
+  return null
 }
 
 function pushHistory(state: GraphState): Pick<GraphState, 'history'> {
@@ -1007,6 +1030,27 @@ export const useGraphStore = create<GraphStore>((set, get) => ({
         selectedNodeIds: flattened.restoredNodeIds,
         selectedConnectionId: null,
         configDialogNodeId: state.configDialogNodeId === id ? null : state.configDialogNodeId
+      }
+    })
+  },
+
+  openNetlistById: (id) => {
+    set(state => {
+      const target = state.db.netlists[id]
+      if (!target) return state
+      const path = findPathToNetlist(state.db, id)
+      const navigationStack = path ? path.slice(0, -1) : []
+      return {
+        ...buildStateForNetlist(state.db, id, navigationStack),
+        projectId: state.projectId,
+        projectName: state.projectName,
+        projectVersion: state.projectVersion,
+        history: state.history,
+        clipboard: state.clipboard,
+        selectedNodeIds: [],
+        selectedConnectionId: null,
+        draggingConnection: null,
+        configDialogNodeId: null
       }
     })
   },
