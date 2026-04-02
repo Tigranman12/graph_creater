@@ -3,43 +3,15 @@ import './NodeLibrary.css'
 import { useGraphStore } from '../../store/graphStore'
 import { NodeTemplate } from '../../types'
 
-const NODE_TEMPLATES: NodeTemplate[] = [
-  {
-    name: 'Module',
-    subtitle: 'Behavioral',
-    color: '#5B8DD9',
-    defaultPorts: [],
-    defaultParameters: [
-      { key: 'module_type', value: 'generic', paramType: 'text' }
-    ]
-  },
-  {
-    name: 'Behavioral Module',
-    subtitle: 'Code-driven',
-    color: '#D9A84A',
-    defaultPorts: [
-      { name: 'in0', direction: 'input', side: 'left', order: 0, maxConnections: 1 },
-      { name: 'out', direction: 'output', side: 'right', order: 0, maxConnections: -1 }
-    ],
-    defaultParameters: [
-      { key: 'module_type', value: 'behavioral', paramType: 'text' }
-    ]
-  },
-  {
-    name: 'Hierarchical Module',
-    subtitle: 'Nested netlist',
-    color: '#5BA85C',
-    moduleKind: 'hierarchical',
-    createSubgraph: true,
-    defaultPorts: [
-      { name: 'in', direction: 'input', side: 'left', order: 0, maxConnections: 1 },
-      { name: 'out', direction: 'output', side: 'right', order: 0, maxConnections: -1 }
-    ],
-    defaultParameters: [
-      { key: 'module_type', value: 'hierarchical', paramType: 'text' }
-    ]
-  }
-]
+const MODULE_TEMPLATE: NodeTemplate = {
+  name: 'Module',
+  subtitle: 'Configurable node',
+  color: '#5B8DD9',
+  defaultPorts: [],
+  defaultParameters: [
+    { key: 'module_type', value: 'generic', paramType: 'text' }
+  ]
+}
 
 const NodeLibrary: React.FC = () => {
   const [searchText, setSearchText] = useState('')
@@ -49,9 +21,10 @@ const NodeLibrary: React.FC = () => {
   const canvasScale = useGraphStore(s => s.canvasScale)
 
   const filteredTemplates = useMemo(() => {
-    if (!searchText.trim()) return NODE_TEMPLATES
+    const templates = [MODULE_TEMPLATE]
+    if (!searchText.trim()) return templates
     const lower = searchText.toLowerCase()
-    return NODE_TEMPLATES.filter(t =>
+    return templates.filter(t =>
       t.name.toLowerCase().includes(lower) ||
       t.subtitle.toLowerCase().includes(lower)
     )
@@ -76,17 +49,17 @@ const NodeLibrary: React.FC = () => {
   return (
     <div className="node-library">
       <div className="node-library-header">
-        <h3>Node Library</h3>
+        <h3>Modules</h3>
         <input
           className="node-library-search"
           type="text"
-          placeholder="Search..."
+          placeholder="Find module..."
           value={searchText}
           onChange={e => setSearchText(e.target.value)}
         />
       </div>
       <div className="node-library-body">
-        <div className="node-library-section-label">Templates</div>
+        <div className="node-library-section-label">Available</div>
         {filteredTemplates.map(template => (
           <button
             key={template.name}
@@ -100,15 +73,8 @@ const NodeLibrary: React.FC = () => {
             />
             <div className="template-info">
               <span className="template-name">{template.name}</span>
-              {template.subtitle && (
-                <span className="template-subtitle">{template.subtitle}</span>
-              )}
+              <span className="template-subtitle">{template.subtitle}</span>
             </div>
-            {template.defaultPorts.length > 0 && (
-              <span className="template-port-count">
-                {template.defaultPorts.length}
-              </span>
-            )}
           </button>
         ))}
 
@@ -117,7 +83,8 @@ const NodeLibrary: React.FC = () => {
         )}
       </div>
       <div className="node-library-hint">
-        Module-only library. Nested netlists in library: {db.libraryNetlistIds.length}
+        One module class only. Configure ports, code, IDs, and hierarchical behavior after adding it.
+        Library netlists: {db.libraryNetlistIds.length}
       </div>
     </div>
   )

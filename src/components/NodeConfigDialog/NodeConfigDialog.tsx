@@ -200,7 +200,7 @@ const NodeConfigDialog: React.FC = () => {
                 <label>Subtitle / Type</label>
                 <input className="dialog-input" value={localNode.subtitle || ''}
                   onChange={e => setLocalNode(prev => ({ ...prev, subtitle: e.target.value }))}
-                  placeholder="e.g. Process, Source, Filter…" />
+                  placeholder="Optional module label" />
               </div>
               <div className="dialog-field">
                 <label>Module ID</label>

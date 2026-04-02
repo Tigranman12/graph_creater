@@ -128,12 +128,6 @@
   max-width: 100%;
 }
 
-.template-port-count {
-  font-size: 10px;
-  color: #4a5566;
-  flex-shrink: 0;
-}
-
 .node-library-hint {
   padding: 10px 10px 14px;
   font-size: 10px;
