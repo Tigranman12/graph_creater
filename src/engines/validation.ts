@@ -50,27 +50,25 @@ export function canConnect(
     return { ok: false, reason: 'This connection already exists' }
   }
 
-  // Check maxConnections on the input (to) port
-  const inputPort = fromPort.direction === 'input' ? fromPort : toPort
-  if (inputPort.maxConnections !== -1 && inputPort.maxConnections >= 1) {
-    const existingCount = connections.filter(c => c.toPortId === inputPort.id).length
-    if (existingCount >= inputPort.maxConnections) {
-      return {
-        ok: false,
-        reason: `Input port "${inputPort.name}" is already occupied (max ${inputPort.maxConnections} connection${inputPort.maxConnections > 1 ? 's' : ''})`
-      }
+  const fromPortOccupied = connections.some(
+    c => c.fromPortId === actualFromId || c.toPortId === actualFromId
+  )
+  if (fromPortOccupied) {
+    const occupiedPort = fromPort.id === actualFromId ? fromPort : toPort
+    return {
+      ok: false,
+      reason: `Port "${occupiedPort.name}" is already connected`
     }
   }
 
-  // Check maxConnections on the output (from) port
-  const outputPort = fromPort.direction === 'output' ? fromPort : toPort
-  if (outputPort.maxConnections !== -1) {
-    const existingCount = connections.filter(c => c.fromPortId === outputPort.id).length
-    if (existingCount >= outputPort.maxConnections) {
-      return {
-        ok: false,
-        reason: `Output port "${outputPort.name}" has reached its maximum connection count (${outputPort.maxConnections})`
-      }
+  const toPortOccupied = connections.some(
+    c => c.fromPortId === actualToId || c.toPortId === actualToId
+  )
+  if (toPortOccupied) {
+    const occupiedPort = fromPort.id === actualToId ? fromPort : toPort
+    return {
+      ok: false,
+      reason: `Port "${occupiedPort.name}" is already connected`
     }
   }
 
