@@ -62,6 +62,7 @@ export const Canvas: React.FC = () => {
   const copySelected = useGraphStore(s => s.copySelected)
   const pasteClipboard = useGraphStore(s => s.pasteClipboard)
   const groupSelectedAsSubmodule = useGraphStore(s => s.groupSelectedAsSubmodule)
+  const flattenNode = useGraphStore(s => s.flattenNode)
   const enterHierarchyByNode = useGraphStore(s => s.enterHierarchyByNode)
   const exitHierarchy = useGraphStore(s => s.exitHierarchy)
   const undo = useGraphStore(s => s.undo)
@@ -475,6 +476,7 @@ export const Canvas: React.FC = () => {
     ? nodes.find(node => node.id === selectedNodeIds[0]) || null
     : null
   const canGoDown = !!selectedSingleNode && selectedSingleNode.moduleKind === 'hierarchical'
+  const canFlatten = !!selectedSingleNode && selectedSingleNode.moduleKind === 'hierarchical'
   const canGoUp = navigationStack.length > 0
 
   const cursor = isPanning ? 'grabbing' : draggingConnection ? 'crosshair' : 'default'
@@ -681,6 +683,18 @@ export const Canvas: React.FC = () => {
             }}
           >
             Make Hierarchical
+          </button>
+          <button
+            className="canvas-context-menu-item"
+            disabled={!canFlatten}
+            onClick={() => {
+              if (selectedSingleNode) {
+                flattenNode(selectedSingleNode.id)
+              }
+              setContextMenu(null)
+            }}
+          >
+            Flatten
           </button>
           <button
             className="canvas-context-menu-item"

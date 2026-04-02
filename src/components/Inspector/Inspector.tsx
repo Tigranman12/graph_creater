@@ -33,6 +33,7 @@ const Inspector: React.FC = () => {
   const lockNode = useGraphStore(s => s.lockNode)
   const collapseNode = useGraphStore(s => s.collapseNode)
   const groupSelectedAsSubmodule = useGraphStore(s => s.groupSelectedAsSubmodule)
+  const flattenNode = useGraphStore(s => s.flattenNode)
   const enterHierarchyByNode = useGraphStore(s => s.enterHierarchyByNode)
   const exitHierarchy = useGraphStore(s => s.exitHierarchy)
 
@@ -251,6 +252,14 @@ const Inspector: React.FC = () => {
                   onClick={() => enterHierarchyByNode(node.id)}
                 >
                   Enter
+                </button>
+              )}
+              {node.moduleKind === 'hierarchical' && (
+                <button
+                  className="inspector-btn secondary"
+                  onClick={() => flattenNode(node.id)}
+                >
+                  Flatten
                 </button>
               )}
               <button

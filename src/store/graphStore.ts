@@ -56,6 +56,7 @@ interface GraphActions {
   updateNode: (id: string, partial: Partial<GraphNode>) => void
   ensureHierarchyForNode: (id: string) => void
   groupSelectedAsSubmodule: () => void
+  flattenNode: (id: string) => void
   deleteNode: (id: string) => void
   deleteSelectedNodes: () => void
   duplicateNode: (id: string) => string
@@ -581,6 +582,149 @@ function groupNodesIntoSubmodule(
   }
 }
 
+function flattenSubmoduleNode(
+  db: NetlistDatabase,
+  netlistId: string,
+  nodeId: string
+): { db: NetlistDatabase; netlist: Netlist; restoredNodeIds: string[] } | null {
+  const parentNetlist = db.netlists[netlistId]
+  const moduleNode = parentNetlist?.nodes.find(node => node.id === nodeId)
+  if (!parentNetlist || !moduleNode?.subgraphId) return null
+
+  const childNetlist = db.netlists[moduleNode.subgraphId]
+  if (!childNetlist) return null
+
+  const boundaryNodes = childNetlist.nodes.filter(node =>
+    node.parameters.some(parameter => parameter.key === 'role' && (
+      parameter.value === 'submodule_input' || parameter.value === 'submodule_output'
+    ))
+  )
+  const boundaryNodeIds = new Set(boundaryNodes.map(node => node.id))
+  const internalNodes = childNetlist.nodes.filter(node => !boundaryNodeIds.has(node.id))
+
+  if (internalNodes.length === 0) return null
+
+  let minX = Infinity
+  let minY = Infinity
+  let maxX = -Infinity
+  let maxY = -Infinity
+  internalNodes.forEach(node => {
+    minX = Math.min(minX, node.x)
+    minY = Math.min(minY, node.y)
+    maxX = Math.max(maxX, node.x + node.width)
+    maxY = Math.max(maxY, node.y + computeNodeHeight(node))
+  })
+
+  const clusterWidth = Math.max(1, maxX - minX)
+  const clusterHeight = Math.max(1, maxY - minY)
+  const offsetX = moduleNode.x + moduleNode.width / 2 - clusterWidth / 2 - minX
+  const offsetY = moduleNode.y + moduleNode.height / 2 - clusterHeight / 2 - minY
+
+  const restoredNodes = internalNodes.map(node => ({
+    ...cloneDeep(node),
+    x: node.x + offsetX,
+    y: node.y + offsetY
+  }))
+
+  const internalConnections = childNetlist.connections.filter(connection =>
+    !boundaryNodeIds.has(connection.fromNodeId) && !boundaryNodeIds.has(connection.toNodeId)
+  ).map(connection => cloneDeep(connection))
+
+  const externalToPort = new Map<string, Connection[]>()
+  parentNetlist.connections.forEach(connection => {
+    if (connection.toNodeId === moduleNode.id) {
+      const list = externalToPort.get(connection.toPortId) || []
+      list.push(connection)
+      externalToPort.set(connection.toPortId, list)
+    }
+    if (connection.fromNodeId === moduleNode.id) {
+      const list = externalToPort.get(connection.fromPortId) || []
+      list.push(connection)
+      externalToPort.set(connection.fromPortId, list)
+    }
+  })
+
+  const rewiredConnections: Connection[] = []
+
+  moduleNode.ports.forEach(modulePort => {
+    const matchingBoundary = boundaryNodes.find(node => node.name === modulePort.name)
+    if (!matchingBoundary) return
+
+    const edgeConnections = childNetlist.connections.filter(connection =>
+      connection.fromNodeId === matchingBoundary.id || connection.toNodeId === matchingBoundary.id
+    )
+    const parentConnections = externalToPort.get(modulePort.id) || []
+
+    if (modulePort.direction === 'input') {
+      const boundaryToInternal = edgeConnections.find(connection =>
+        connection.fromNodeId === matchingBoundary.id && !boundaryNodeIds.has(connection.toNodeId)
+      )
+      if (!boundaryToInternal) return
+      parentConnections.forEach(parentConnection => {
+        rewiredConnections.push({
+          id: uuidv4(),
+          fromNodeId: parentConnection.fromNodeId,
+          fromPortId: parentConnection.fromPortId,
+          toNodeId: boundaryToInternal.toNodeId,
+          toPortId: boundaryToInternal.toPortId,
+          routePoints: [],
+          label: parentConnection.label || boundaryToInternal.label
+        })
+      })
+      return
+    }
+
+    const internalToBoundary = edgeConnections.find(connection =>
+      !boundaryNodeIds.has(connection.fromNodeId) && connection.toNodeId === matchingBoundary.id
+    )
+    if (!internalToBoundary) return
+    parentConnections.forEach(parentConnection => {
+      rewiredConnections.push({
+        id: uuidv4(),
+        fromNodeId: internalToBoundary.fromNodeId,
+        fromPortId: internalToBoundary.fromPortId,
+        toNodeId: parentConnection.toNodeId,
+        toPortId: parentConnection.toPortId,
+        routePoints: [],
+        label: parentConnection.label || internalToBoundary.label
+      })
+    })
+  })
+
+  const nextParentNetlist: Netlist = {
+    ...parentNetlist,
+    nodes: [
+      ...parentNetlist.nodes.filter(node => node.id !== moduleNode.id),
+      ...restoredNodes
+    ],
+    connections: [
+      ...parentNetlist.connections.filter(connection =>
+        connection.fromNodeId !== moduleNode.id && connection.toNodeId !== moduleNode.id
+      ),
+      ...internalConnections,
+      ...rewiredConnections
+    ]
+  }
+
+  const nextNetlists = { ...db.netlists }
+  delete nextNetlists[moduleNode.subgraphId]
+
+  const nextDb: NetlistDatabase = {
+    ...db,
+    libraryNetlistIds: db.libraryNetlistIds.filter(id => id !== moduleNode.subgraphId),
+    netlists: {
+      ...nextNetlists,
+      [netlistId]: nextParentNetlist
+    }
+  }
+
+  return {
+    db: nextDb,
+    netlist: nextParentNetlist,
+    restoredNodeIds: restoredNodes.map(node => node.id)
+  }
+}
+
 function collectReferencedNetlists(
   sourceNetlists: Record<string, Netlist>,
   nodes: GraphNode[],
@@ -849,6 +993,20 @@ export const useGraphStore = create<GraphStore>((set, get) => ({
         ...buildStateForNetlist(grouped.db, state.currentNetlistId, state.navigationStack),
         selectedNodeIds: [grouped.moduleNodeId],
         selectedConnectionId: null
+      }
+    })
+  },
+
+  flattenNode: (id) => {
+    set(state => {
+      const flattened = flattenSubmoduleNode(state.db, state.currentNetlistId, id)
+      if (!flattened) return state
+      return {
+        ...pushHistory(state),
+        ...buildStateForNetlist(flattened.db, state.currentNetlistId, state.navigationStack),
+        selectedNodeIds: flattened.restoredNodeIds,
+        selectedConnectionId: null,
+        configDialogNodeId: state.configDialogNodeId === id ? null : state.configDialogNodeId
       }
     })
   },
