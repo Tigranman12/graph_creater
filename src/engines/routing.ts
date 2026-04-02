@@ -142,6 +142,45 @@ export function routeConnection(
   }
 }
 
+function segmentNormal(from: Point, to: Point): Point {
+  const dx = to.x - from.x
+  const dy = to.y - from.y
+  if (Math.abs(dx) >= Math.abs(dy)) {
+    return { x: 0, y: dx >= 0 ? -1 : 1 }
+  }
+  return { x: dy >= 0 ? 1 : -1, y: 0 }
+}
+
+export function offsetOrthogonalRoute(points: Point[], offset: number): Point[] {
+  if (offset === 0 || points.length < 2) return points
+
+  return points.map((point, index) => {
+    if (index === 0) {
+      const normal = segmentNormal(points[0], points[1])
+      return { x: point.x + normal.x * offset, y: point.y + normal.y * offset }
+    }
+
+    if (index === points.length - 1) {
+      const normal = segmentNormal(points[index - 1], points[index])
+      return { x: point.x + normal.x * offset, y: point.y + normal.y * offset }
+    }
+
+    const prevNormal = segmentNormal(points[index - 1], points[index])
+    const nextNormal = segmentNormal(points[index], points[index + 1])
+    const avgX = prevNormal.x + nextNormal.x
+    const avgY = prevNormal.y + nextNormal.y
+
+    if (avgX === 0 && avgY === 0) {
+      return { x: point.x + nextNormal.x * offset, y: point.y + nextNormal.y * offset }
+    }
+
+    return {
+      x: point.x + avgX * offset,
+      y: point.y + avgY * offset
+    }
+  })
+}
+
 function routeRightToLeft(
   from: Point,
   to: Point,

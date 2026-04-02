@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo } from 'react'
 import { Connection, GraphNode } from '../../types'
 import { useGraphStore } from '../../store/graphStore'
-import { getPortAnchor, routeConnection, pointsToSmoothPathD } from '../../engines/routing'
+import { getPortAnchor, routeConnection, pointsToSmoothPathD, offsetOrthogonalRoute } from '../../engines/routing'
 
 interface ConnectionLineProps {
   connection: Connection
@@ -17,17 +17,31 @@ export const ConnectionLine: React.FC<ConnectionLineProps> = ({
   onClick
 }) => {
   const [isHovered, setIsHovered] = React.useState(false)
+  const allConnections = useGraphStore(s => s.connections)
 
   const fromNode = nodes.find(n => n.id === connection.fromNodeId)
   const toNode = nodes.find(n => n.id === connection.toNodeId)
+  const siblingConnections = useMemo(() => {
+    return allConnections
+      .filter(candidate =>
+        candidate.fromNodeId === connection.fromNodeId &&
+        candidate.toNodeId === connection.toNodeId
+      )
+      .sort((left, right) => left.id.localeCompare(right.id))
+  }, [allConnections, connection.fromNodeId, connection.toNodeId])
 
-  const pathD = useMemo(() => {
-    if (!fromNode || !toNode) return ''
+  const siblingIndex = siblingConnections.findIndex(candidate => candidate.id === connection.id)
+  const busOffset = siblingConnections.length > 1
+    ? (siblingIndex - (siblingConnections.length - 1) / 2) * 8
+    : 0
+
+  const routedPoints = useMemo(() => {
+    if (!fromNode || !toNode) return []
 
     const fromPort = fromNode.ports.find(p => p.id === connection.fromPortId)
     const toPort = toNode.ports.find(p => p.id === connection.toPortId)
 
-    if (!fromPort || !toPort) return ''
+    if (!fromPort || !toPort) return []
 
     const fromAnchor = getPortAnchor(fromNode, fromPort)
     const toAnchor = getPortAnchor(toNode, toPort)
@@ -42,22 +56,23 @@ export const ConnectionLine: React.FC<ConnectionLineProps> = ({
       excludeIds
     )
 
-    return pointsToSmoothPathD(routePoints)
-  }, [fromNode, toNode, connection, nodes])
+    return offsetOrthogonalRoute(routePoints, busOffset)
+  }, [fromNode, toNode, connection, nodes, busOffset])
+
+  const pathD = useMemo(() => {
+    if (!Array.isArray(routedPoints) || routedPoints.length === 0) return ''
+    return pointsToSmoothPathD(routedPoints)
+  }, [routedPoints])
 
   const midPoint = useMemo(() => {
-    if (!fromNode || !toNode) return null
-    const fromPort = fromNode.ports.find(p => p.id === connection.fromPortId)
-    const toPort = toNode.ports.find(p => p.id === connection.toPortId)
-    if (!fromPort || !toPort) return null
-
-    const fromAnchor = getPortAnchor(fromNode, fromPort)
-    const toAnchor = getPortAnchor(toNode, toPort)
+    if (!Array.isArray(routedPoints) || routedPoints.length === 0) return null
+    const fromAnchor = routedPoints[0]
+    const toAnchor = routedPoints[routedPoints.length - 1]
     return {
       x: (fromAnchor.x + toAnchor.x) / 2,
       y: (fromAnchor.y + toAnchor.y) / 2
     }
-  }, [fromNode, toNode, connection])
+  }, [routedPoints])
 
   const handleClick = useCallback((e: React.MouseEvent) => {
     e.stopPropagation()
