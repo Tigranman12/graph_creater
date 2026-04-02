@@ -46,6 +46,8 @@ export const Canvas: React.FC = () => {
   const canvasOffset = useGraphStore(s => s.canvasOffset)
   const canvasScale = useGraphStore(s => s.canvasScale)
   const draggingConnection = useGraphStore(s => s.draggingConnection)
+  const navigationStack = useGraphStore(s => s.navigationStack)
+  const clipboardCount = useGraphStore(s => s.clipboard.nodes.length)
 
   // Store actions
   const setCanvasTransform = useGraphStore(s => s.setCanvasTransform)
@@ -58,7 +60,10 @@ export const Canvas: React.FC = () => {
   const addConnection = useGraphStore(s => s.addConnection)
   const deleteSelectedNodes = useGraphStore(s => s.deleteSelectedNodes)
   const copySelected = useGraphStore(s => s.copySelected)
+  const pasteClipboard = useGraphStore(s => s.pasteClipboard)
   const groupSelectedAsSubmodule = useGraphStore(s => s.groupSelectedAsSubmodule)
+  const enterHierarchyByNode = useGraphStore(s => s.enterHierarchyByNode)
+  const exitHierarchy = useGraphStore(s => s.exitHierarchy)
   const undo = useGraphStore(s => s.undo)
   const redo = useGraphStore(s => s.redo)
 
@@ -466,6 +471,12 @@ export const Canvas: React.FC = () => {
     height: Math.abs(selectionRect.currentY - selectionRect.startY)
   } : null
 
+  const selectedSingleNode = selectedNodeIds.length === 1
+    ? nodes.find(node => node.id === selectedNodeIds[0]) || null
+    : null
+  const canGoDown = !!selectedSingleNode && selectedSingleNode.moduleKind === 'hierarchical'
+  const canGoUp = navigationStack.length > 0
+
   const cursor = isPanning ? 'grabbing' : draggingConnection ? 'crosshair' : 'default'
 
   return (
@@ -644,6 +655,16 @@ export const Canvas: React.FC = () => {
         >
           <button
             className="canvas-context-menu-item"
+            disabled={clipboardCount === 0}
+            onClick={() => {
+              pasteClipboard()
+              setContextMenu(null)
+            }}
+          >
+            Paste
+          </button>
+          <button
+            className="canvas-context-menu-item"
             onClick={() => {
               copySelected()
               setContextMenu(null)
@@ -660,6 +681,28 @@ export const Canvas: React.FC = () => {
             }}
           >
             Make Hierarchical
+          </button>
+          <button
+            className="canvas-context-menu-item"
+            disabled={!canGoDown}
+            onClick={() => {
+              if (selectedSingleNode) {
+                enterHierarchyByNode(selectedSingleNode.id)
+              }
+              setContextMenu(null)
+            }}
+          >
+            Go Down
+          </button>
+          <button
+            className="canvas-context-menu-item"
+            disabled={!canGoUp}
+            onClick={() => {
+              exitHierarchy()
+              setContextMenu(null)
+            }}
+          >
+            Go Up
           </button>
           <button
             className="canvas-context-menu-item danger"
