@@ -75,6 +75,7 @@ interface GraphActions {
   setSelectedNodes: (ids: string[]) => void
   toggleSelectedNode: (id: string) => void
   setSelectedConnection: (id: string | null) => void
+  toggleSelectedConnection: (id: string) => void
   openConfigDialog: (nodeId: string) => void
   closeConfigDialog: () => void
   undo: () => void
@@ -1400,6 +1401,13 @@ export const useGraphStore = create<GraphStore>((set, get) => ({
   },
 
   setSelectedConnection: id => set({ selectedConnectionId: id, selectedNodeIds: [] }),
+
+  toggleSelectedConnection: id => {
+    set(state => ({
+      selectedConnectionId: state.selectedConnectionId === id ? null : id,
+      selectedNodeIds: []
+    }))
+  },
 
   openConfigDialog: nodeId => set({ configDialogNodeId: nodeId }),
 

@@ -54,6 +54,7 @@ export const Canvas: React.FC = () => {
   const setSelectedNodes = useGraphStore(s => s.setSelectedNodes)
   const toggleSelectedNode = useGraphStore(s => s.toggleSelectedNode)
   const setSelectedConnection = useGraphStore(s => s.setSelectedConnection)
+  const toggleSelectedConnection = useGraphStore(s => s.toggleSelectedConnection)
   const setDraggingConnection = useGraphStore(s => s.setDraggingConnection)
   const moveNode = useGraphStore(s => s.moveNode)
   const commitNodeMove = useGraphStore(s => s.commitNodeMove)
@@ -127,9 +128,11 @@ export const Canvas: React.FC = () => {
     }
 
     if (e.button === 0) {
-      // Left click: clear selection, start selection rect
-      setSelectedNodes([])
-      setSelectedConnection(null)
+      // Left click: clear selection unless Ctrl is held
+      if (!e.ctrlKey && !e.metaKey) {
+        setSelectedNodes([])
+        setSelectedConnection(null)
+      }
 
       const pt = getSVGPoint(e)
       setSelectionRect({
@@ -149,7 +152,7 @@ export const Canvas: React.FC = () => {
     if (!node || node.locked) return
     setContextMenu(null)
 
-    if (!e.shiftKey) {
+    if (!e.ctrlKey && !e.metaKey) {
       if (!selectedNodeIds.includes(nodeId)) {
         setSelectedNodes([nodeId])
       }
@@ -369,7 +372,13 @@ export const Canvas: React.FC = () => {
           )
         }).map(n => n.id)
 
-        setSelectedNodes(selected)
+        if (e.ctrlKey || e.metaKey) {
+          // Add to current selection
+          const nextSet = new Set([...selectedNodeIds, ...selected])
+          setSelectedNodes(Array.from(nextSet))
+        } else {
+          setSelectedNodes(selected)
+        }
       }
 
       setIsSelecting(false)
@@ -570,6 +579,7 @@ export const Canvas: React.FC = () => {
               nodes={nodes}
               isSelected={conn.id === selectedConnectionId}
               onClick={setSelectedConnection}
+              onToggle={toggleSelectedConnection}
             />
           ))}
 

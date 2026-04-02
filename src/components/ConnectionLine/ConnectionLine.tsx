@@ -8,13 +8,15 @@ interface ConnectionLineProps {
   nodes: GraphNode[]
   isSelected: boolean
   onClick: (id: string) => void
+  onToggle: (id: string) => void
 }
 
 export const ConnectionLine: React.FC<ConnectionLineProps> = ({
   connection,
   nodes,
   isSelected,
-  onClick
+  onClick,
+  onToggle
 }) => {
   const [isHovered, setIsHovered] = React.useState(false)
   const allConnections = useGraphStore(s => s.connections)
@@ -76,8 +78,12 @@ export const ConnectionLine: React.FC<ConnectionLineProps> = ({
 
   const handleClick = useCallback((e: React.MouseEvent) => {
     e.stopPropagation()
-    onClick(connection.id)
-  }, [connection.id, onClick])
+    if (e.ctrlKey || e.metaKey) {
+      onToggle(connection.id)
+    } else {
+      onClick(connection.id)
+    }
+  }, [connection.id, onClick, onToggle])
 
   if (!pathD) return null
 
