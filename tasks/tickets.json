@@ -28,5 +28,11 @@
     "title": "Task checker and continuation workflow",
     "status": "done",
     "summary": "Provide repo-tracked tasks plus a checker script for future AI sessions."
+  },
+  {
+    "id": "TICKET-006",
+    "title": "Ctrl-restricted multi-selection",
+    "status": "done",
+    "summary": "Multi-select nodes/connections only when Ctrl key is held, otherwise clear selection on click."
   }
 ]
