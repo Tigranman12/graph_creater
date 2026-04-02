@@ -57,6 +57,8 @@ export const Canvas: React.FC = () => {
   const commitNodeMove = useGraphStore(s => s.commitNodeMove)
   const addConnection = useGraphStore(s => s.addConnection)
   const deleteSelectedNodes = useGraphStore(s => s.deleteSelectedNodes)
+  const copySelected = useGraphStore(s => s.copySelected)
+  const groupSelectedAsSubmodule = useGraphStore(s => s.groupSelectedAsSubmodule)
   const undo = useGraphStore(s => s.undo)
   const redo = useGraphStore(s => s.redo)
 
@@ -66,6 +68,7 @@ export const Canvas: React.FC = () => {
   const [isPanning, setIsPanning] = useState(false)
   const [isSelecting, setIsSelecting] = useState(false)
   const [selectionRect, setSelectionRect] = useState<SelectionRect | null>(null)
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null)
 
   // Port drag (Ctrl+drag to reposition)
   const portDragRef = useRef<{ nodeId: string; portId: string } | null>(null)
@@ -102,6 +105,7 @@ export const Canvas: React.FC = () => {
     }
 
     e.preventDefault()
+    setContextMenu(null)
 
     if (e.button === 1 || (e.button === 0 && e.altKey)) {
       // Middle mouse or Alt+drag = pan
@@ -134,8 +138,10 @@ export const Canvas: React.FC = () => {
 
   // Node drag start
   const handleNodeMouseDown = useCallback((nodeId: string, e: React.MouseEvent) => {
+    if (e.button === 2) return
     const node = nodes.find(n => n.id === nodeId)
     if (!node || node.locked) return
+    setContextMenu(null)
 
     if (!e.shiftKey) {
       if (!selectedNodeIds.includes(nodeId)) {
@@ -155,6 +161,17 @@ export const Canvas: React.FC = () => {
     }
     isNodeDragging.current = false
   }, [nodes, selectedNodeIds, setSelectedNodes, toggleSelectedNode, getSVGPoint])
+
+  const handleNodeContextMenu = useCallback((nodeId: string, e: React.MouseEvent) => {
+    e.preventDefault()
+    const node = nodes.find(n => n.id === nodeId)
+    if (!node) return
+    if (!selectedNodeIds.includes(nodeId)) {
+      setSelectedNodes([nodeId])
+      setSelectedConnection(null)
+    }
+    setContextMenu({ x: e.clientX, y: e.clientY })
+  }, [nodes, selectedNodeIds, setSelectedNodes, setSelectedConnection])
 
   // Port mousedown — Ctrl+drag repositions port, normal drag creates connection
   const handlePortMouseDown = useCallback((nodeId: string, portId: string, e: React.MouseEvent) => {
@@ -405,6 +422,16 @@ export const Canvas: React.FC = () => {
     }
   }, [handleMouseMove, handleMouseUp, handleWheel, handleKeyDown])
 
+  useEffect(() => {
+    const closeMenu = () => setContextMenu(null)
+    window.addEventListener('resize', closeMenu)
+    window.addEventListener('scroll', closeMenu, true)
+    return () => {
+      window.removeEventListener('resize', closeMenu)
+      window.removeEventListener('scroll', closeMenu, true)
+    }
+  }, [])
+
   // Dragging connection preview path
   const dragPreviewPath = React.useMemo(() => {
     if (!draggingConnection) return null
@@ -442,7 +469,15 @@ export const Canvas: React.FC = () => {
   const cursor = isPanning ? 'grabbing' : draggingConnection ? 'crosshair' : 'default'
 
   return (
-    <div ref={containerRef} className="canvas-container">
+    <div
+      ref={containerRef}
+      className="canvas-container"
+      onContextMenu={e => {
+        if (selectedNodeIds.length === 0) return
+        e.preventDefault()
+        setContextMenu({ x: e.clientX, y: e.clientY })
+      }}
+    >
       <svg
         ref={svgRef}
         className="canvas-svg"
@@ -553,6 +588,7 @@ export const Canvas: React.FC = () => {
                   : null
               }
               onNodeMouseDown={handleNodeMouseDown}
+              onNodeContextMenu={handleNodeContextMenu}
               onPortMouseDown={handlePortMouseDown}
               onPortMouseUp={handlePortMouseUp}
             />
@@ -600,6 +636,42 @@ export const Canvas: React.FC = () => {
           />
         )}
       </svg>
+
+      {contextMenu && (
+        <div
+          className="canvas-context-menu"
+          style={{ left: contextMenu.x, top: contextMenu.y }}
+        >
+          <button
+            className="canvas-context-menu-item"
+            onClick={() => {
+              copySelected()
+              setContextMenu(null)
+            }}
+          >
+            Copy Selected
+          </button>
+          <button
+            className="canvas-context-menu-item"
+            disabled={selectedNodeIds.length < 2}
+            onClick={() => {
+              groupSelectedAsSubmodule()
+              setContextMenu(null)
+            }}
+          >
+            Make Hierarchical
+          </button>
+          <button
+            className="canvas-context-menu-item danger"
+            onClick={() => {
+              deleteSelectedNodes()
+              setContextMenu(null)
+            }}
+          >
+            Delete Selected
+          </button>
+        </div>
+      )}
 
       {/* Zoom indicator */}
       <div className="zoom-indicator">

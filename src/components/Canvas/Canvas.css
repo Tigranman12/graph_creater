@@ -56,3 +56,42 @@
   font-family: system-ui, sans-serif;
   pointer-events: none;
 }
+
+.canvas-context-menu {
+  position: fixed;
+  z-index: 50;
+  min-width: 180px;
+  background: #22262e;
+  border: 1px solid #2d3340;
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.canvas-context-menu-item {
+  background: transparent;
+  border: 1px solid transparent;
+  color: #c8d4e0;
+  border-radius: 6px;
+  font-size: 12px;
+  text-align: left;
+  padding: 8px 10px;
+  cursor: pointer;
+}
+
+.canvas-context-menu-item:hover {
+  background: #2a3040;
+  border-color: #344055;
+}
+
+.canvas-context-menu-item:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.canvas-context-menu-item.danger {
+  color: #ef9a9a;
+}

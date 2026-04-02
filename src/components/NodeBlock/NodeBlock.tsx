@@ -11,6 +11,7 @@ interface NodeBlockProps {
   isDraggingConnection: boolean
   draggingFromPort: Port | null
   onNodeMouseDown: (nodeId: string, e: React.MouseEvent) => void
+  onNodeContextMenu: (nodeId: string, e: React.MouseEvent) => void
   onPortMouseDown: (nodeId: string, portId: string, e: React.MouseEvent) => void
   onPortMouseUp: (nodeId: string, portId: string) => void
 }
@@ -41,6 +42,7 @@ export const NodeBlock: React.FC<NodeBlockProps> = ({
   isDraggingConnection,
   draggingFromPort,
   onNodeMouseDown,
+  onNodeContextMenu,
   onPortMouseDown,
   onPortMouseUp
 }) => {
@@ -80,6 +82,11 @@ export const NodeBlock: React.FC<NodeBlockProps> = ({
     onPortMouseUp(node.id, portId)
   }, [node.id, onPortMouseUp])
 
+  const handleContextMenu = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation()
+    onNodeContextMenu(node.id, e)
+  }, [node.id, onNodeContextMenu])
+
   const getPortValidState = useCallback((port: Port): boolean | null => {
     if (!isDraggingConnection || !draggingFromPort) return null
     if (port.nodeId === draggingFromPort.nodeId) return false
@@ -95,6 +102,7 @@ export const NodeBlock: React.FC<NodeBlockProps> = ({
       transform={`translate(${x}, ${y})`}
       style={{ cursor: locked ? 'not-allowed' : 'move' }}
       onMouseDown={handleMouseDown}
+      onContextMenu={handleContextMenu}
     >
       {/* Selection glow */}
       {isSelected && (
