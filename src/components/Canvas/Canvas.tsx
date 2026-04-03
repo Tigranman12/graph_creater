@@ -117,23 +117,34 @@ export const Canvas: React.FC = () => {
 
   // Update visible nodes based on viewport
   useEffect(() => {
+    // If we have few nodes, just show all of them to be safe
+    if (nodes.length < 100) {
+      setVisibleNodeIds(new Set(nodes.map(n => n.id)))
+      return
+    }
+
     if (!quadtreeRef.current || !containerRef.current) {
-      if (nodes.length > 0 && nodes.length < 100) {
-        setVisibleNodeIds(new Set(nodes.map(n => n.id)))
-      }
       return
     }
 
     const updateVisibility = () => {
       const rect = containerRef.current!.getBoundingClientRect()
-      const gTopLeft = screenToGraph(0, 0)
-      const gBottomRight = screenToGraph(rect.width, rect.height)
+      
+      // Manually compute graph coords to avoid stale closures
+      const gTopLeft = {
+        x: (0 - canvasOffset.x) / canvasScale,
+        y: (0 - canvasOffset.y) / canvasScale
+      }
+      const gBottomRight = {
+        x: (rect.width - canvasOffset.x) / canvasScale,
+        y: (rect.height - canvasOffset.y) / canvasScale
+      }
       
       const viewport = {
-        x: gTopLeft.x,
-        y: gTopLeft.y,
-        width: gBottomRight.x - gTopLeft.x,
-        height: gBottomRight.y - gTopLeft.y
+        x: gTopLeft.x - 100, // add margin
+        y: gTopLeft.y - 100,
+        width: (gBottomRight.x - gTopLeft.x) + 200,
+        height: (gBottomRight.y - gTopLeft.y) + 200
       }
 
       const visible = quadtreeRef.current!.retrieve(viewport)
@@ -141,12 +152,17 @@ export const Canvas: React.FC = () => {
       // Also include selected nodes so they don't disappear while dragging if they go off-screen
       selectedNodeIds.forEach(id => visible.add(id))
       
-      setVisibleNodeIds(visible)
+      if (visible.size === 0 && nodes.length > 0) {
+        // Emergency fallback: if nothing is visible but nodes exist, 
+        // something might be wrong with quadtree bounds, show some nodes
+        setVisibleNodeIds(new Set(nodes.slice(0, 50).map(n => n.id)))
+      } else {
+        setVisibleNodeIds(visible)
+      }
     }
 
     updateVisibility()
-    // We could throttle this if needed
-  }, [canvasOffset, canvasScale, nodes, selectedNodeIds, screenToGraph])
+  }, [canvasOffset, canvasScale, nodes, selectedNodeIds])
 
   // Convert screen coords to graph coords
   const screenToGraph = useCallback((sx: number, sy: number) => {
