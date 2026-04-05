@@ -1,7 +1,31 @@
+# Codex
 .codex/
 .codex
+
+# Dependencies
 node_modules/
+
+# Build output
 dist/
+out/
+release/
+
+# Logs
 logs/
-*.tsbuildinfo
 *.log
+npm-debug.log*
+
+# TypeScript incremental build info
+*.tsbuildinfo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# Environment
+.env
+.env.local
